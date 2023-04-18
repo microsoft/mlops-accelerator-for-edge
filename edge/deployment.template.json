@@ -1,0 +1,67 @@
+{
+  "$schema-template": "2.0.0",  
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired.runtime.settings.registryCredentials.${CONTAINER_REGISTRY_NAME}": {
+                "username": "${CONTAINER_REGISTRY_USERNAME}",
+                "password": "${CONTAINER_REGISTRY_PASSWORD}",
+                "address": "${CONTAINER_REGISTRY_ADDRESS}"
+        },
+        "properties.desired.modules.${ML_MODEL_DOCKER_IMAGE_NAME}": {
+            "version": "1.1",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "startupOrder": 1,
+            "settings": {
+              "image": "${CONTAINER_REGISTRY_ADDRESS}/${ML_MODEL_DOCKER_IMAGE_NAME}:${ML_MODEL_DOCKER_VERSION}",
+              "createOptions": {
+                "HostConfig": {
+                  "PortBindings": {
+                    "5001/tcp": [
+                      {
+                        "HostPort": "${HOST_PORT_NUMBER}"
+                      }
+                    ],
+                    "31311/tcp": [
+                      {
+                        "HostPort": "31311"
+                      }
+                    ]
+                  },
+                  "Mounts": [
+                    {
+                      "Target": "/var/azureml-app/logs/",
+                      "Source": "/tmp",
+                      "Type": "bind",
+                      "ReadOnly": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "properties.desired.modules.${SMOKE_TEST_DOCKER_NAME}": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "startupOrder": 2,
+            "settings": {
+              "image": "${CONTAINER_REGISTRY_ADDRESS}/${SMOKE_TEST_DOCKER_NAME}:${SMOKE_TEST_DOCKER_VERSION}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "NetworkMode": "host"
+                }
+              }
+            }
+          }
+        }
+      
+    }
+}
