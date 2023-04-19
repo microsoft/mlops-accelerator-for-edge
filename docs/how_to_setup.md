@@ -6,7 +6,7 @@ In order to setup the repository, you need to complete few steps.
 
 **Step 1.** Create a service connection in Azure DevOps. You can use [this document](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml) as a reference. Use Azure Resource Manager as a type of the service connection. This service connection should be configured at multiple places - Azure DevOps, Key Vault, Azure subscription/resource group.
 
-**Step 2.** Create a new variable group with the following variables:
+**Step 2.** Create a new variable group for each model with the following variables. The name of the variable group should be consistent with the naming convention MLOps-${{parameters.model_type}}-${{parameters.exec_environment}}-VG:
 
 - EXPERIMENT_BASE_NAME: an experiment base name. This parameter as well as two more parameters below we are using as a background to form unique names for experiments, runs and models. You can find a rule for the names in [here](../devops/pipeline/templates/experiment_variables.yml). By default we are using the branch name as well as build id to form the names that helps us to differentiate experiments, runs and models working in a big team of data scientists and software engineers. The EXPERIMENT_TYPE variable from the template is hard coded in _dev_pipeline.yml files.
 - DISPLAY_BASE_NAME: a run base name (see EXPERIMENT_BASE_NAME for details).
