@@ -32,7 +32,6 @@ def main(predictions, model, score_report):
     for filename in arr:
         print("reading file: %s ..." % filename)
         with open(os.path.join(predictions, filename), "r") as handle:
-            # print (handle.read())
             input_df = pd.read_csv((Path(predictions) / filename))
             df_list.append(input_df)
 
@@ -44,8 +43,6 @@ def main(predictions, model, score_report):
 
 
 # Print the results of scoring the predictions against actual values in the test data
-
-
 def write_results(model, predictions, test_data, score_report):
     # The coefficients
     print("Coefficients: \n", model.coef_)

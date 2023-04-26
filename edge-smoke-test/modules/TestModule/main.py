@@ -59,7 +59,6 @@ def create_client():
                 )
                 print(res.text)
 
-                # test_result = 'test pass with module port: {}'.format(port)
                 infer_result = "{}".format(res.text)
                 return_payload = {"infer_result": infer_result}
                 method_response = MethodResponse.create_from_method_request(

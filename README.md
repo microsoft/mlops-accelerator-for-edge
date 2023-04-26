@@ -1,10 +1,10 @@
-# MLOps Accelerator for edge
+# MLOps Accelerator for Edge
 
 > **Note:**
 > This is a repo that can be shared to our customers. This means it's NOT OK to include Microsoft confidential
 > content. All discussions should be appropriate for a public audience.
 
-MLOps accelerator for edge is an end to end workflow that supports generating and deploying models on IoT edge devices. 
+MLOps accelerator for Edge is an end to end workflow that supports generating and deploying models on IoT Edge devices. 
 
 ## Features
 
@@ -15,21 +15,21 @@ MLOps accelerator for edge is an end to end workflow that supports generating an
 - All Docker images are stored in Azure Container Registry
 - Gated approval before moving to deployment phase
 - Supports deployment of Edge Modules to multiple and dynamically selected IoT Edge devices based on conditions
-- Automated and incremental layered deployment of ML Models on edge devices 
-- Builds and deploys Smoke Test module on edge device
-- Smoke test of ML Model on each edge device after deployment
-- Supports storing inference input and outputs on edge device
+- Automated and incremental layered deployment of ML Models on Edge devices 
+- Builds and deploys Smoke Test module on Edge device
+- Smoke test of ML Model on each Edge device after deployment
+- Supports storing inference input and outputs on Edge device
 - Based on Azure ML SDK v2 1.4 and IoT Edge runtime 1.4
 
 ## About this repo
 
-The idea of this end to end workflow is to provide a minimum number of scripts to implement development environment to train new models, embed them into Docker Images, deploy them on edge devices and test them using Azure ML SDK v2, IoT Edge and Azure DevOps.
+The idea of this end to end workflow is to provide a minimum number of scripts to implement development environment to train new models, embed them into Docker Images, deploy them on Edge devices and test them using Azure ML SDK v2, IoT Edge and Azure DevOps.
 
 The workflow contains the following folders/files:
 
 - devops: the folder contains Azure DevOps related files (yaml files to define Builds).
 - docs: documentation.
-- src: source code that is not related to Azure ML directly. Usually, there is data science related code.
+- src: source code that is not related to Azure ML directly. This is typically data science related code.
 - mlops: scripts that are related to Azure ML.
 - mlops/nyc-taxi: a fake pipeline with some basic code to build a model
 - mlops/london-taxi: a fake pipeline with some basic code to build another model

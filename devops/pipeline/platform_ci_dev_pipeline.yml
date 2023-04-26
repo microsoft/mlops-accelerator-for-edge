@@ -70,10 +70,10 @@ stages:
             SecretsFilter: '*'
             RunAsPreJob: false
         - task: UsePythonVersion@0
-          displayName: "install python 3.9"
+          displayName: "install python 3.8"
           continueOnError: false
           inputs: 
-            versionSpec: '3.9'
+            versionSpec: '3.8'
         - task: Bash@3
           displayName: Add Azure IoT Extensions
           inputs:
@@ -126,10 +126,10 @@ stages:
         displayName: 'Deploy Images To Edge Device'
         steps:
         - task: UsePythonVersion@0
-          displayName: "install python 3.9"
+          displayName: "install python 3.8"
           continueOnError: false
           inputs: 
-            versionSpec: '3.9'
+            versionSpec: '3.8'
         - task: Bash@3
           displayName: Add Azure IoT Extensions
           inputs:
@@ -177,10 +177,10 @@ stages:
         displayName: 'Deploy Images To Edge Device'
         steps:
         - task: UsePythonVersion@0
-          displayName: "install python 3.9"
+          displayName: "install python 3.8"
           continueOnError: false
           inputs: 
-            versionSpec: '3.9'
+            versionSpec: '3.8'
         - task: Bash@3
           displayName: Add Azure IoT Extensions
           inputs:
