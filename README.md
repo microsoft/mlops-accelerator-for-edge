@@ -1,33 +1,61 @@
-# Project
+# MLOps Accelerator for Edge
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+> **Note:**
+> This is a repo that can be shared to our customers. This means it's NOT OK to include Microsoft confidential
+> content. All discussions should be appropriate for a public audience.
 
-As the maintainer of this project, please make a few updates:
+MLOps accelerator for Edge is an end to end workflow that supports generating and deploying models on IoT Edge devices. 
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Features
 
-## Contributing
+- Supports generation of multiple ML Models
+- MLOps pipeline for Data preparation, transformation, Model Training, evaluation, scoring and registration 
+- Each ML Model is packaged in a independent Docker Image
+- Model verification before storing the Docker image
+- All Docker images are stored in Azure Container Registry
+- Gated approval before moving to deployment phase
+- Supports deployment of Edge Modules to multiple and dynamically selected IoT Edge devices based on conditions
+- Automated and incremental layered deployment of ML Models on Edge devices 
+- Builds and deploys Smoke Test module on Edge device
+- Smoke test of ML Model on each Edge device after deployment
+- Supports storing inference input and outputs on Edge device
+- Based on Azure ML SDK v2 1.4 and IoT Edge runtime 1.4
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+## About this repo
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+The idea of this end to end workflow is to provide a minimum number of scripts to implement development environment to train new models, embed them into Docker Images, deploy them on Edge devices and test them using Azure ML SDK v2, IoT Edge and Azure DevOps.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+The workflow contains the following folders/files:
 
-## Trademarks
+- devops: the folder contains Azure DevOps related files (yaml files to define Builds).
+- docs: documentation.
+- src: source code that is not related to Azure ML directly. This is typically data science related code.
+- mlops: scripts that are related to Azure ML.
+- mlops/nyc-taxi: a fake pipeline with some basic code to build a model
+- mlops/london-taxi: a fake pipeline with some basic code to build another model
+- test: a folder with dummy test to write unit tests for the build
+- model: Model related files and dependencies
+- edge: contains layered deployment manifest to deploy ML Models and Test Modules
+- edge-smoke-test: packages smoke test logic into Docker images and pushes it to ACR
+- .amlignore: using this file we are removing all the folders and files that are not supposed to be in Azure ML compute.
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+The workflow contains the following documents:
+
+- docs/how_to_setup.md: explain how to configure the workflow.
+
+## How to use the repo
+
+Information about how to setup the repo is in [the following document](./docs/how_to_setup.md).  
+
+## Reference
+
+* [Azure IoT Hub](https://azure.microsoft.com/en-gb/products/iot-hub)
+* [Azure IoT Edge documentation](https://learn.microsoft.com/en-us/azure/iot-edge/?view=iotedge-1.4)
+* [Azure Container Registry](https://azure.microsoft.com/en-us/products/container-registry/)
+* [Azure Machine learning](https://docs.microsoft.com/azure/machine-learning)
+* [Azure DevOps pipelines](https://learn.microsoft.com/en-gb/azure/devops/pipelines/)
+* [Dockerfile](https://docs.docker.com/engine/reference/builder/)
+* [Azure Machine learning SDK V2](https://learn.microsoft.com/en-gb/python/api/overview/azure/ai-ml-readme?view=azure-python)
+* [Azure IoT CLI](https://learn.microsoft.com/en-us/cli/azure/azure-cli-reference-for-iot)
+* [Azure AD Service Principal](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)
+* [Azure Key Vault](https://learn.microsoft.com/en-gb/azure/key-vault/general/)

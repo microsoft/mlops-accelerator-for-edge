@@ -1,0 +1,146 @@
+
+parameters:
+ - name: exec_environment
+   displayName: "Execution Environment"
+   default: "dev"
+ - name: model_type
+   displayName: "type of model to execute"
+
+
+jobs:
+- job: build_docker_image
+  pool: 
+    vmImage: ubuntu-latest
+  timeoutInMinutes: 0
+  dependsOn: Execute_ml_Job_Pipeline
+  variables:
+    - group: MLOps-${{parameters.model_type}}-${{parameters.exec_environment}}-VG
+    - template: ./experiment_variables.yml
+      parameters:
+          exec_environment: dev
+  steps:
+  - task: UsePythonVersion@0
+    displayName: "install python 3.8"
+    continueOnError: false
+    inputs: 
+      versionSpec: '3.8'
+
+
+  - task: AzureKeyVault@2
+    continueOnError: false
+    inputs:
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      KeyVaultName: $(KEYVAULT_NAME)
+      SecretsFilter: '*'
+      RunAsPreJob: false
+
+
+  - task: AzureCLI@2
+    displayName: "setup the build server"
+    continueOnError: false
+    inputs:
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      workingDirectory : $(system.DefaultWorkingDirectory)/model
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e
+        sudo apt install -y jq
+        python -m pip install --upgrade pip
+        pip install -r ./${{parameters.model_type}}/pipeline-requirements.txt
+        az extension add -n ml -y
+        az upgrade --yes
+        az config set extension.use_dynamic_install=yes_without_prompt
+
+  - task: AzureCLI@2
+    displayName: Download Model artifacts from AzureML Model Registry
+    continueOnError: false
+    inputs: 
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      workingDirectory: $(System.DefaultWorkingDirectory)/model
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e # fail on error
+        az ml model download --name $(MODEL_NAME) --version $(az ml model list --name $(MODEL_NAME)  --resource-group $(RESOURCE_GROUP_NAME)  --workspace-name $(WORKSPACE_NAME) --query "max([].version)" --output tsv) --download-path ${{ parameters.model_type }}  -g $(RESOURCE_GROUP_NAME) -w $(WORKSPACE_NAME) 
+
+  - task: AzureCLI@2
+    displayName: Build Docker Image with model artifacts
+    continueOnError: false
+    inputs: 
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      workingDirectory: $(System.DefaultWorkingDirectory)/model/${{ parameters.model_type }}
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e # fail on error
+        # cd ${{ parameters.model_type }}
+        docker login "$(registry-uri)" -u "$(registry-username)" -p "$(registry-password)" 
+        docker image build --build-arg model_folder=${{ parameters.model_type }} --build-arg model_file_name="model.pkl" --build-arg score_file=$(score_file_name) --build-arg model_registered_name=$(MODEL_NAME)/model -t $(temp_image_name) .
+        docker images
+    
+  - task: AzureCLI@2
+    displayName: run model container
+    continueOnError: false
+    inputs: 
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      workingDirectory: $(System.DefaultWorkingDirectory)
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e # fail on error
+        #echo "$(pwd)"
+        #echo "$(ls)"
+        #mkdir -p ml_models
+        #cp ./model/${{ parameters.model_type }}/$(MODEL_NAME)/model/model.pkl ./ml_models
+        docker run -d --name $(temp_container_name) -p $(HOST_PORT_NUMBER):5001 $(temp_image_name)
+        if [ $( docker ps | grep $(temp_image_name) | wc -l) -gt 0 ]; then
+          echo "$(temp_image_name) container exists"
+        else
+          echo "$(temp_image_name) container does not exists"
+          exit 1
+        fi
+        echo "$(docker inspect $(temp_container_name))"
+        
+        sleep 30
+        echo "$(docker exec $(temp_container_name) ls /var/azureml-app/azureml-models)"
+        echo "$(docker logs $(temp_container_name))"
+
+  - task: AzureCLI@2
+    displayName: Test model locally
+    continueOnError: false
+    inputs: 
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      workingDirectory: $(System.DefaultWorkingDirectory)/model/${{parameters.model_type}}
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e # fail on error
+        sleep 15
+        curl -i --request POST  "http://0.0.0.0:$(HOST_PORT_NUMBER)/score" --header 'Content-Type: application/json' --data @$(test_file_path)
+        inference_output=$(curl -i --request POST  "http://0.0.0.0:$(HOST_PORT_NUMBER)/score" --header 'Content-Type: application/json' --data @$(test_file_path) | grep '200 OK')
+        if [[ $(echo "$inference_output") =~ "200 OK" ]]
+        then
+          echo "inferencing succeeded"
+        else
+          echo "inferencing failed"
+          exit 2
+        fi
+        
+
+  - task: AzureCLI@2
+    displayName: upload image to ACR
+    continueOnError: false
+    inputs: 
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      workingDirectory: $(System.DefaultWorkingDirectory)
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e # fail on error
+        docker login "$(registry-uri)" -u "$(registry-username)" -p "$(registry-password)" 
+        docker tag testimage "$(registry-uri)"/$(MODEL_NAME):$(Build.BuildNumber)
+        docker push "$(registry-uri)"/$(MODEL_NAME):$(Build.BuildNumber)
+        echo "##vso[task.setvariable variable=ML_MODEL_DOCKER_IMAGE_NAME;isOutput=true;]$(MODEL_NAME)"
+        echo "##vso[task.setvariable variable=ML_MODEL_DOCKER_IMAGE_VERSION;isOutput=true;]$(Build.BuildNumber)"
+
