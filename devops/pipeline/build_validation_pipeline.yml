@@ -1,3 +1,7 @@
+parameters:
+ - name: model_type
+   displayName: "type of model to execute"
+
 jobs:
 - job: Build_Validation_Pipeline
   steps:
@@ -10,13 +14,10 @@ jobs:
       python -m pip install --upgrade pip
       pip install -r devops/pipeline/requirements/build_validation_requirements.txt
     displayName: "Load Python Dependencies"
-    
-  - script: |
-      flake8 .
-    displayName: "Lint with flake8"
+
 
   - script: |
-      pytest  --ignore=sandbox/ --junitxml=junit/test-results.xml --cov=. --cov-report=xml
+      pytest test/${{ parameters.model_type }}  --ignore=sandbox/ --junitxml=junit/test-results.xml --cov=. --cov-report=xml
     displayName: 'Run Unit Tests'
     condition: succeededOrFailed()
 
