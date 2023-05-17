@@ -13,11 +13,7 @@ jobs:
     vmImage: ubuntu-latest
   timeoutInMinutes: 0
   dependsOn: Execute_ml_Job_Pipeline
-  variables:
-    - group: MLOps-${{parameters.model_type}}-${{parameters.exec_environment}}-VG
-    - template: ./experiment_variables.yml
-      parameters:
-          exec_environment: dev
+
   steps:
   - task: UsePythonVersion@0
     displayName: "install python 3.8"

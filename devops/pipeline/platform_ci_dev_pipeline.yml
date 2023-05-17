@@ -10,10 +10,10 @@ parameters:
 stages:
     - stage: execute_training_job
       displayName: execute_training_job
+      dependsOn: 
+      - variable_generation
       variables:
       - template: templates/experiment_variables.yml
-        parameters:
-          exec_environment: ${{parameters.exec_environment}}
       jobs:
       - job: Execute_ml_Job_Pipeline
         steps:
@@ -47,10 +47,11 @@ stages:
 
     - stage: Generate_Edge_Deployment_Manifest
       displayName: Generate_Edge_Deployment_Manifest
+      dependsOn: 
+      - variable_generation
+      - execute_training_job
       variables:
       - template: templates/experiment_variables.yml
-        parameters:
-          exec_environment: ${{parameters.exec_environment}}
       jobs:
       - deployment: ApproveDeployment
         environment: approve_deployment
@@ -115,15 +116,15 @@ stages:
 
     - stage: 'Build_Test_Edge_Module'
       displayName: 'Build Test Module For ML Model'
+      dependsOn: 
+      - variable_generation
+      - Generate_Edge_Deployment_Manifest
       variables:
       - template: templates/experiment_variables.yml
-        parameters:
-          exec_environment: ${{parameters.exec_environment}}
-      dependsOn: Generate_Edge_Deployment_Manifest
       condition: succeeded('Generate_Edge_Deployment_Manifest')
       jobs:
       - job: 'build_smoke_test_module'
-        displayName: 'Deploy Images To Edge Device'
+        displayName: 'Build smoke test module and upload'
         steps:
         - task: UsePythonVersion@0
           displayName: "install python 3.8"
@@ -166,11 +167,11 @@ stages:
 
     - stage: 'Deploy_IoT_Edge'
       displayName: 'Deploy_IoT_Edge'
+      dependsOn: 
+      - variable_generation
+      - Build_Test_Edge_Module
       variables:
       - template: templates/experiment_variables.yml
-        parameters:
-          exec_environment: ${{parameters.exec_environment}}
-      dependsOn: Build_Test_Edge_Module
       condition: succeeded('Build_Test_Edge_Module')
       jobs:
       - job: 'Deploy_IoT_Edge'
